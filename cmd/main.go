@@ -13,13 +13,15 @@ func main() {
 	conf := configs.LoadConfig()
 
 	router := http.NewServeMux()
-	auth.NewAuthHandler(router)
+	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
+		Config: conf,
+	})
 
 	server := http.Server{
-		Addr:    net.JoinHostPort("", conf.Port),
+		Addr:    net.JoinHostPort(conf.Server.Host, conf.Server.Port),
 		Handler: router,
 	}
 
-	slog.Info("Sever is listening on", "port", conf.Port)
+	slog.Info("Sever is listening on", "host", conf.Server.Host, "port", conf.Server.Port)
 	server.ListenAndServe()
 }

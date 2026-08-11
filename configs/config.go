@@ -8,12 +8,21 @@ import (
 )
 
 type Config struct {
-	Db   DbConfig
+	Server ServerConfig
+	Db     DbConfig
+	Auth   AuthConfig
+}
+type ServerConfig struct {
 	Port string
+	Host string
 }
 
 type DbConfig struct {
 	Dsn string
+}
+
+type AuthConfig struct {
+	Secret string
 }
 
 func LoadConfig() *Config {
@@ -25,7 +34,13 @@ func LoadConfig() *Config {
 		Db: DbConfig{
 			Dsn: os.Getenv("DSN"),
 		},
-		Port: os.Getenv("PORT"),
+		Server: ServerConfig{
+			Port: os.Getenv("PORT"),
+			Host: os.Getenv("HOST"),
+		},
+		Auth: AuthConfig{
+			os.Getenv("TOKEN"),
+		},
 	}
 
 }
