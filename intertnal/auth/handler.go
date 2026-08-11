@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"regexp"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
@@ -34,18 +34,14 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 		var req LoginRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			res.Json(w, err.Error, http.StatusBadRequest)
+			res.Json(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		reg, err := regexp.Compile(`[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
+		validate := validator.New()
+		err = validate.Struct(req)
 		if err != nil {
-			res.Json(w, err.Error, http.StatusBadRequest)
-			return
-		}
-
-		if !reg.MatchString(req.Email) {
-			res.Json(w, "Wrong email", http.StatusBadRequest)
+			res.Json(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
