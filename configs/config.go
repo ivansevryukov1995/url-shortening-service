@@ -1,14 +1,15 @@
 package configs
 
 import (
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Db DbConfig
+	Db   DbConfig
+	Port string
 }
 
 type DbConfig struct {
@@ -18,12 +19,13 @@ type DbConfig struct {
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Error  loading .env file, using default config")
+		slog.Error("Error loading .env file, using default config")
 	}
 	return &Config{
 		Db: DbConfig{
 			Dsn: os.Getenv("DSN"),
 		},
+		Port: os.Getenv("PORT"),
 	}
 
 }
