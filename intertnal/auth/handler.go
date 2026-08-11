@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
 
@@ -29,6 +30,13 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Login")
 
+		body, err := req.HandleBody[LoginRequest](&w, r)
+		if err != nil {
+			return
+		}
+
+		_ = body
+
 		data := LoginResponse{
 			Token: "123",
 		}
@@ -38,8 +46,19 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 }
 func (handler *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		slog.Info("Register")
+
+		body, err := req.HandleBody[RegisterRequest](&w, r)
+		if err != nil {
+			return
+		}
+
+		_ = body
+
+		data := RegisterResponse{
+			Token: "123",
+		}
+		res.Json(w, data, http.StatusCreated)
 	}
 
 }
