@@ -1,11 +1,9 @@
 package auth
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
@@ -30,20 +28,6 @@ func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Login")
-
-		var req LoginRequest
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if err != nil {
-			res.Json(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		validate := validator.New()
-		err = validate.Struct(req)
-		if err != nil {
-			res.Json(w, err.Error(), http.StatusBadRequest)
-			return
-		}
 
 		data := LoginResponse{
 			Token: "123",
