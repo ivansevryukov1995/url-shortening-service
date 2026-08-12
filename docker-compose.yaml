@@ -3,10 +3,10 @@ services:
     container_name: postgres_go
     image: postgres:16.4
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: my_pass
+      POSTGRES_USER: ${PGSQL_USER}
+      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
       PGDATA: /data/postgres
     volumes:
       - ./postgres-data:/data/postgres
     ports:
-      - "5432:5432"
+      - "${PGSQL_PORT}:5432"
