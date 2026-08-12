@@ -4,20 +4,21 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
 
 type LinkHandler struct {
-	*configs.Config
+	LinkRepository *LinkRepository
 }
 
 type LinkHandlerDeps struct {
-	*configs.Config
+	LinkRepository *LinkRepository
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
-		Config: deps.Config,
+		LinkRepository: deps.LinkRepository,
 	}
 
 	router.HandleFunc("POST /link", handler.Create())
@@ -30,6 +31,22 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 func (handler *LinkHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Create")
+		body, err := req.HandleBody[LinkCreateRequest](&w, r)
+		if err != nil {
+			return
+		}
+
+		// service layer
+		link := NewLink(body.Url)
+		createdLink, err := handler.LinkRepository.Create(link)
+		//
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		res.Json(w, createdLink, http.StatusCreated)
 	}
 }
 func (handler *LinkHandler) GoTo() http.HandlerFunc {
@@ -45,5 +62,9 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 func (handler *LinkHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Delete")
+
+		id := r.PathValue("id")
+		slog.Info(id)
+
 	}
 }
