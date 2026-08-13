@@ -38,6 +38,13 @@ func (handler *LinkHandler) Create() http.HandlerFunc {
 
 		// service layer
 		link := NewLink(body.Url)
+		for {
+			existedLink, _ := handler.LinkRepository.GetByHash(link.Hash)
+			if existedLink == nil {
+				break
+			}
+			link.GeneratedHash()
+		}
 		createdLink, err := handler.LinkRepository.Create(link)
 		//
 
