@@ -8,13 +8,13 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
+	Server AppConfig
 	Db     DbConfig
 	Auth   AuthConfig
 }
-type ServerConfig struct {
-	Port string
+type AppConfig struct {
 	Host string
+	Port string
 }
 
 type DbConfig struct {
@@ -28,15 +28,15 @@ type AuthConfig struct {
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		slog.Error("Error loading .env file, using default config")
+		slog.Info(".env not found, using environment variables: %v", err)
 	}
 	return &Config{
 		Db: DbConfig{
-			Dsn: os.Getenv("DSN"),
+			Dsn: os.Getenv("DATABASE_URL"),
 		},
-		Server: ServerConfig{
-			Port: os.Getenv("PORT"),
-			Host: os.Getenv("HOST"),
+		Server: AppConfig{
+			Host: os.Getenv("APP_HOST"),
+			Port: os.Getenv("APP_PORT"),
 		},
 		Auth: AuthConfig{
 			os.Getenv("TOKEN"),
