@@ -7,17 +7,26 @@ import (
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/auth"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/link"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/db"
 )
 
 func main() {
 	conf := configs.LoadConfig()
 
-	_ = db.NewDb(conf)
+	db := db.NewDb(conf)
 
 	router := http.NewServeMux()
+
+	// Repository
+	linkRepo := link.NewLinkRepository(db)
+
+	// Handlers
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
 		Config: conf,
+	})
+	link.NewLinkHandler(router, link.LinkHandlerDeps{
+		LinkRepository: linkRepo,
 	})
 
 	server := http.Server{
