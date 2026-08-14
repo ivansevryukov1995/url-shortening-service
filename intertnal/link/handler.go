@@ -120,6 +120,12 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 			return
 		}
 
+		_, err = handler.LinkRepository.GetById(uint(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		err = handler.LinkRepository.Delete(uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
