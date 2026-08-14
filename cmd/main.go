@@ -30,9 +30,14 @@ func main() {
 		LinkRepository: linkRepo,
 	})
 
+	// Middleware
+	stack := middleware.Chain(
+		middleware.CORS,
+		middleware.Logging,
+	)
 	server := http.Server{
 		Addr:    net.JoinHostPort(conf.Server.Host, conf.Server.Port),
-		Handler: middleware.Logging(router),
+		Handler: stack(router),
 	}
 
 	slog.Info("Sever is listening on", "host", conf.Server.Host, "port", conf.Server.Port)

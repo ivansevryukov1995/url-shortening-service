@@ -52,7 +52,6 @@ func (handler *LinkHandler) Create() http.HandlerFunc {
 		//
 
 		if err != nil {
-			slog.Info("Create Error", "", err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
