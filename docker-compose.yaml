@@ -2,20 +2,22 @@ services:
   postgres:
     container_name: postgres_go
     image: postgres:16.4
-    restart: always
+    restart: no
     environment:
       POSTGRES_USER: ${PGSQL_USER}
       POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
+      POSTGRES_DB: ${PGSQL_DBNAME}
       PGDATA: /data/postgres
     volumes:
-      - ./postgres-data:/data/postgres
+      - pg-data:/data/postgres
     ports:
       - "${DB_PORT}:${PGSQL_PORT}"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PGSQL_USER:-postgres} -d postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${PGSQL_USER} -d ${PGSQL_DBNAME}"]
+      interval: 10s      
+      timeout: 10s       
+      retries: 20        
+      start_period: 120s 
 
   uss-service:
     container_name: uss-service
@@ -32,3 +34,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  
+volumes:
+  pg-data:
