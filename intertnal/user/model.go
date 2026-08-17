@@ -1,8 +1,8 @@
-package users
+package user
 
 import "gorm.io/gorm"
 
-type Users struct {
+type User struct {
 	gorm.Model
 	Email    string `gorm:"index"`
 	Password string
