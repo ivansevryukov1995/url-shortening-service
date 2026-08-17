@@ -18,12 +18,13 @@ func (repo *UserRepository) Create(user *User) (*User, error) {
 
 	return user, nil
 }
+
 func (repo *UserRepository) FindByEmail(email string) (*User, error) {
-	var user *User
-	result := repo.database.DB.First(user, "email = ?", email)
+	var user User
+	result := repo.database.DB.First(&user, "email = ?", email)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return user, nil
+	return &user, nil
 }
