@@ -3,7 +3,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY /ussApp /app/ussApp
-RUN chmod +x /app/ussApp
+COPY /bin/ussApp /app/ussApp
+RUN chmod +x /app/ussApp 
 
 CMD [ "/app/ussApp" ]
