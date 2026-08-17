@@ -31,7 +31,7 @@ down:
 	@echo "Containers stopped."
 
 migrate: build_migrate
-	docker compose run --rm --entrypoint="./ussMigrate" uss-service
+	docker compose run --rm -v "$(PWD)/bin:/work" --entrypoint="/work/ussMigrate" uss-service
 
 up-db:
 	@echo "Starting Postgres only..."
