@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
@@ -17,6 +18,7 @@ type LinkHandler struct {
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
+	Config         *configs.Config
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
@@ -26,7 +28,7 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 
 	router.HandleFunc("POST /link", handler.Create())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
-	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update()))
+	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update(), deps.Config))
 	router.HandleFunc("DELETE /link/{id}", handler.Delete())
 
 }
