@@ -1,8 +1,14 @@
 package jwt
 
 import (
+	"fmt"
+
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type JWTData struct {
+	Email string
+}
 
 type JWT struct {
 	Secret string
@@ -14,9 +20,9 @@ func NewJwt(secret string) *JWT {
 	}
 }
 
-func (j *JWT) Create(email string) (string, error) {
+func (j *JWT) Create(data JWTData) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": email,
+		"email": data.Email,
 	})
 	s, err := t.SignedString([]byte(j.Secret))
 	if err != nil {
@@ -24,4 +30,22 @@ func (j *JWT) Create(email string) (string, error) {
 	}
 
 	return s, nil
+}
+
+func (j *JWT) Parse(token string) (bool, *JWTData) {
+	t, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		// We verify that the algorithm is exactly what we expect (HS256).
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return []byte(j.Secret), nil
+	})
+	if err != nil {
+		return false, nil
+	}
+
+	email := t.Claims.(jwt.MapClaims)["email"]
+	return t.Valid, &JWTData{
+		Email: email.(string),
+	}
 }

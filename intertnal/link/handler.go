@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
@@ -17,6 +18,7 @@ type LinkHandler struct {
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
+	Config         *configs.Config
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
@@ -24,10 +26,10 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 		LinkRepository: deps.LinkRepository,
 	}
 
-	router.HandleFunc("POST /link", handler.Create())
+	router.Handle("POST /link", middleware.IsAuthed(handler.Create(), deps.Config))
 	router.HandleFunc("GET /{hash}", handler.GoTo())
-	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update()))
-	router.HandleFunc("DELETE /link/{id}", handler.Delete())
+	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update(), deps.Config))
+	router.Handle("DELETE /link/{id}", middleware.IsAuthed(handler.Delete(), deps.Config))
 
 }
 
@@ -79,6 +81,11 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 func (handler *LinkHandler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Update")
+
+		email, ok := r.Context().Value(middleware.ContextEmailKey).(string)
+		if ok {
+			slog.Info(email)
+		}
 
 		body, err := req.HandleBody[LinkUpdateRequest](&w, r)
 		if err != nil {

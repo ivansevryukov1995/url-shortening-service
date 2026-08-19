@@ -1,16 +1,47 @@
 package middleware
 
 import (
+	"context"
+	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/jwt"
 )
 
-func IsAuthed(next http.Handler) http.Handler {
+type key string
+
+const (
+	ContextEmailKey key = "ContextEmailKey"
+)
+
+func writeUnauthed(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write([]byte(http.StatusText(http.StatusUnauthorized)))
+}
+
+func IsAuthed(next http.Handler, config *configs.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authedHeader := r.Header.Get("Authorization")
+
+		if !strings.HasPrefix(authedHeader, "Bearer ") {
+			writeUnauthed(w)
+			return
+		}
+
 		token := strings.TrimPrefix(authedHeader, "Bearer ")
-		_ = token
-		next.ServeHTTP(w, r)
+		isValid, data := jwt.NewJwt(config.Auth.Secret).Parse(token)
+		slog.Info("", "Secret", config.Auth.Secret, "token", token)
+		if !isValid {
+			writeUnauthed(w)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), ContextEmailKey, data.Email)
+		req := r.WithContext(ctx)
+
+		next.ServeHTTP(w, req)
 	})
 
 }
