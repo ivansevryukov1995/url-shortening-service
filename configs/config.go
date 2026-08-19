@@ -36,7 +36,7 @@ func LoadConfig() *Config {
 			Port: os.Getenv("APP_PORT"),
 		},
 		Auth: AuthConfig{
-			os.Getenv("TOKEN"),
+			os.Getenv("SECRET"),
 		},
 	}
 
