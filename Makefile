@@ -1,7 +1,10 @@
 USS_BINARY := bin/ussApp
 USS_MIGRATE := bin/ussMigrate
 
-.PHONY: up up-build down clean migrate up-db wait-db build_uss build_migrate
+.PHONY: up up-build down clean migrate up-db wait-db build_uss build_migrate gen-secret
+
+gen-secret:
+	echo "SECRET=$(openssl rand -base64 32)" > .secrets
 
 build_uss:
 	@echo "Building USS binary for Linux..."

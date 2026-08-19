@@ -29,7 +29,9 @@ services:
       APP_HOST: "${APP_HOST}"
       APP_PORT: "${APP_PORT}"
       DATABASE_URL: "postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@${PGSQL_HOST}:${PGSQL_PORT}/${PGSQL_DBNAME}?sslmode=${DB_SSLMODE}"
-      SECRET: "${SECRET}"
+      # SECRET: "${SECRET}"
+    env_file:
+      - .secrets
     ports:
       - "${APP_PORT}:8081"
     depends_on:
