@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
@@ -14,16 +15,19 @@ import (
 
 type LinkHandler struct {
 	LinkRepository *LinkRepository
+	StatRepository di.IStatRepository
 }
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
+	StatRepository di.IStatRepository
 	Config         *configs.Config
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
+		StatRepository: deps.StatRepository,
 	}
 
 	router.Handle("POST /link", middleware.IsAuthed(handler.Create(), deps.Config))
@@ -76,6 +80,9 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+
+		handler.StatRepository.AddClick(link.ID)
+
 		http.Redirect(w, r, link.URL, http.StatusTemporaryRedirect)
 	}
 }

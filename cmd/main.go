@@ -8,6 +8,7 @@ import (
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/auth"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/link"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/stat"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/user"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/db"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
@@ -23,6 +24,7 @@ func main() {
 	// Repositories
 	linkRepo := link.NewLinkRepository(db)
 	userRepo := user.NewUserRepository(db)
+	statRepo := stat.NewStatRepository(db)
 
 	// Services
 	authService := auth.AuthService{
@@ -35,8 +37,9 @@ func main() {
 		AuthService: authService,
 	})
 	link.NewLinkHandler(router, link.LinkHandlerDeps{
-		LinkRepository: linkRepo,
 		Config:         conf,
+		LinkRepository: linkRepo,
+		StatRepository: statRepo,
 	})
 
 	// Middleware
