@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"fmt"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -32,6 +34,10 @@ func (j *JWT) Create(data JWTData) (string, error) {
 
 func (j *JWT) Parse(token string) (bool, *JWTData) {
 	t, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		// We verify that the algorithm is exactly what we expect (HS256).
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
 		return []byte(j.Secret), nil
 	})
 	if err != nil {
