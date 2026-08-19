@@ -76,7 +76,7 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, link.URL, http.StatusTemporaryRedirect)
 	}
 }
 
@@ -105,7 +105,7 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			Model: gorm.Model{
 				ID: uint(id),
 			},
-			Url:  body.Url,
+			URL:  body.Url,
 			Hash: body.Hash,
 		})
 		if err != nil {
