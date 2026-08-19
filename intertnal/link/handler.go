@@ -31,6 +31,8 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update(), deps.Config))
 	router.Handle("DELETE /link/{id}", middleware.IsAuthed(handler.Delete(), deps.Config))
 
+	router.Handle("GET /link", middleware.IsAuthed(handler.GetAll(), deps.Config))
+
 }
 
 func (handler *LinkHandler) Create() http.HandlerFunc {
@@ -140,5 +142,40 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 		}
 
 		res.Json(w, nil, http.StatusOK)
+	}
+}
+
+func (handler *LinkHandler) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("GetAll")
+
+		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			http.Error(w, "Invalid limit", http.StatusBadRequest)
+			return
+		}
+
+		offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(w, "Invalid offset", http.StatusBadRequest)
+			return
+		}
+
+		links, err := handler.LinkRepository.GetAll(limit, offset)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		count, err := handler.LinkRepository.Count()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.Json(w, LinksResponse{
+			Links: links,
+			Count: count,
+		}, http.StatusOK)
 	}
 }
