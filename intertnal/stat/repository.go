@@ -3,6 +3,7 @@ package stat
 import (
 	"time"
 
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/db"
 	"gorm.io/datatypes"
@@ -35,4 +36,24 @@ func (repo *StatRepository) AddClick(linkID uint) {
 		stat.Clicks++
 		repo.Db.Save(&stat)
 	}
+}
+
+func (repo *StatRepository) GetStats(from, to time.Time, by string) []dto.GetStatResponse {
+	var stats []dto.GetStatResponse
+	var selectQuery string
+
+	switch by {
+	case GroupByDay:
+		selectQuery = "to_char(date, 'YYYY-MM-DD') as period, sum(clicks)"
+	case GroupByMonth:
+		selectQuery = "to_char(date, 'YYYY-MM') as period, sum(clicks)"
+	}
+	repo.DB.Table("stats").
+		Select(selectQuery).
+		Where("date BETWEEN ? AND ?", from, to).
+		Group("period").
+		Order("period").
+		Scan(&stats)
+
+	return stats
 }

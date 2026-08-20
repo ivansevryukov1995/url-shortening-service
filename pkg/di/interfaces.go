@@ -1,6 +1,11 @@
 package di
 
-import "github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
+import (
+	"time"
+
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
+)
 
 type IAuthService interface {
 	Register(email, password, name string) (string, error)
@@ -28,4 +33,5 @@ type ILinkRepository interface {
 
 type IStatRepository interface {
 	AddClick(linkID uint)
+	GetStats(from, to time.Time, by string) []dto.GetStatResponse
 }

@@ -1,7 +1,6 @@
 package stat
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -9,26 +8,27 @@ import (
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
 
 const (
-	FilterByDay   = "day"
-	FilterByMonth = "month"
+	GroupByDay   = "day"
+	GroupByMonth = "month"
 )
 
 type StatHandler struct {
-	StatService di.IStatService
-	Config      *configs.Config
+	StatRepository di.IStatRepository
+	Config         *configs.Config
 }
 
 type StatHandlerDeps struct {
-	StatService di.IStatService
-	Config      *configs.Config
+	StatRepository di.IStatRepository
+	Config         *configs.Config
 }
 
 func NewStatHandler(router *http.ServeMux, deps StatHandlerDeps) {
 	handler := &StatHandler{
-		StatService: deps.StatService,
+		StatRepository: deps.StatRepository,
 	}
 
 	router.Handle("GET /stat", middleware.IsAuthed(handler.GetStat(), deps.Config))
@@ -51,10 +51,12 @@ func (handler *StatHandler) GetStat() http.HandlerFunc {
 		}
 
 		by := r.URL.Query().Get("by")
-		if by != FilterByDay && by != FilterByMonth {
+		if by != GroupByDay && by != GroupByMonth {
 			http.Error(w, "Invalid by param", http.StatusBadRequest)
 			return
 		}
-		fmt.Println(from, to, by)
+
+		stats := handler.StatRepository.GetStats(from, to, by)
+		res.Json(w, stats, http.StatusOK)
 	}
 }
