@@ -38,13 +38,17 @@ func main() {
 
 	// Handlers
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
-		AuthService: authService,
 		Config:      conf,
+		AuthService: authService,
 	})
 	link.NewLinkHandler(router, link.LinkHandlerDeps{
 		Config:         conf,
 		LinkRepository: linkRepo,
 		EventBus:       eventBus,
+	})
+	stat.NewStatHandler(router, stat.StatHandlerDeps{
+		Config:      conf,
+		StatService: statService,
 	})
 
 	// Middleware

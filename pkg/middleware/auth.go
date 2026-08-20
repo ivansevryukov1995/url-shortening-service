@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -32,7 +31,7 @@ func IsAuthed(next http.Handler, config *configs.Config) http.Handler {
 
 		token := strings.TrimPrefix(authedHeader, "Bearer ")
 		isValid, data := jwt.NewJwt(config.Auth.Secret).Parse(token)
-		slog.Info("", "Secret", config.Auth.Secret, "token", token)
+
 		if !isValid {
 			writeUnauthed(w)
 			return

@@ -7,6 +7,10 @@ type IAuthService interface {
 	Login(email, password string) (string, error)
 }
 
+type IStatService interface {
+	AddClick()
+}
+
 type IUserRepository interface {
 	Create(user *model.User) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
