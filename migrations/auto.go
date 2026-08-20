@@ -3,8 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/ivansevryukov1995/url-shortening-service/intertnal/link"
-	"github.com/ivansevryukov1995/url-shortening-service/intertnal/user"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,5 +19,5 @@ func main() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&link.Link{}, &user.User{})
+	db.AutoMigrate(&model.Link{}, &model.User{}, &model.Stat{})
 }

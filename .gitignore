@@ -1,2 +1,4 @@
 /postgres-data
 /bin
+
+*.secrets

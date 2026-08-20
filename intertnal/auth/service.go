@@ -3,15 +3,16 @@ package auth
 import (
 	"errors"
 
-	"github.com/ivansevryukov1995/url-shortening-service/intertnal/user"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	UserRepository *user.UserRepository
+	UserRepository di.IUserRepository
 }
 
-func NewAuthService(userRepository *user.UserRepository) *AuthService {
+func NewAuthService(userRepository di.IUserRepository) *AuthService {
 	return &AuthService{UserRepository: userRepository}
 }
 
@@ -26,7 +27,7 @@ func (service *AuthService) Register(email, password, name string) (string, erro
 		return "", err
 	}
 
-	user := &user.User{
+	user := &model.User{
 		Email:    email,
 		Password: string(hashPassword),
 		Name:     name,

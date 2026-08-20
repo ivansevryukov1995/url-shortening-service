@@ -6,6 +6,10 @@ import (
 	"strconv"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/event"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
@@ -13,17 +17,20 @@ import (
 )
 
 type LinkHandler struct {
-	LinkRepository *LinkRepository
+	LinkRepository di.ILinkRepository
+	EventBus       *event.EventBus
 }
 
 type LinkHandlerDeps struct {
-	LinkRepository *LinkRepository
+	LinkRepository di.ILinkRepository
+	EventBus       *event.EventBus
 	Config         *configs.Config
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
+		EventBus:       deps.EventBus,
 	}
 
 	router.Handle("POST /link", middleware.IsAuthed(handler.Create(), deps.Config))
@@ -31,19 +38,21 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update(), deps.Config))
 	router.Handle("DELETE /link/{id}", middleware.IsAuthed(handler.Delete(), deps.Config))
 
+	router.Handle("GET /link", middleware.IsAuthed(handler.GetAll(), deps.Config))
+
 }
 
 func (handler *LinkHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Create")
 
-		body, err := req.HandleBody[LinkCreateRequest](&w, r)
+		body, err := req.HandleBody[dto.LinkCreateRequest](&w, r)
 		if err != nil {
 			return
 		}
 
 		// service layer
-		link := NewLink(body.Url)
+		link := model.NewLink(body.Url)
 		for {
 			existedLink, _ := handler.LinkRepository.GetByHash(link.Hash)
 			if existedLink == nil {
@@ -74,7 +83,13 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
+
+		go handler.EventBus.Publish(event.Event{
+			Type: event.EventLinkVisited,
+			Data: link.ID,
+		})
+
+		http.Redirect(w, r, link.URL, http.StatusTemporaryRedirect)
 	}
 }
 
@@ -87,7 +102,7 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			slog.Info(email)
 		}
 
-		body, err := req.HandleBody[LinkUpdateRequest](&w, r)
+		body, err := req.HandleBody[dto.LinkUpdateRequest](&w, r)
 		if err != nil {
 			return
 		}
@@ -99,11 +114,11 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			return
 		}
 
-		link, err := handler.LinkRepository.Update(&Link{
+		link, err := handler.LinkRepository.Update(&model.Link{
 			Model: gorm.Model{
 				ID: uint(id),
 			},
-			Url:  body.Url,
+			URL:  body.Url,
 			Hash: body.Hash,
 		})
 		if err != nil {
@@ -140,5 +155,40 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 		}
 
 		res.Json(w, nil, http.StatusOK)
+	}
+}
+
+func (handler *LinkHandler) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("GetAll")
+
+		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			http.Error(w, "Invalid limit", http.StatusBadRequest)
+			return
+		}
+
+		offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(w, "Invalid offset", http.StatusBadRequest)
+			return
+		}
+
+		links, err := handler.LinkRepository.GetAll(limit, offset)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		count, err := handler.LinkRepository.Count()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.Json(w, dto.LinksResponse{
+			Links: links,
+			Count: count,
+		}, http.StatusOK)
 	}
 }
