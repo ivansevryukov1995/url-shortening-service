@@ -5,25 +5,27 @@ import (
 	"net/http"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/jwt"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
 )
 
 type AuthHandler struct {
-	*configs.Config
-	AuthService
+	AuthService di.IAuthService
+	Config      *configs.Config
 }
 
 type AuthHandlerDeps struct {
-	*configs.Config
-	AuthService
+	AuthService di.IAuthService
+	Config      *configs.Config
 }
 
 func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 	handler := &AuthHandler{
-		Config:      deps.Config,
 		AuthService: deps.AuthService,
+		Config:      deps.Config,
 	}
 
 	router.HandleFunc("POST /auth/register", handler.Register())
@@ -34,7 +36,7 @@ func (handler *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Register")
 
-		body, err := req.HandleBody[RegisterRequest](&w, r)
+		body, err := req.HandleBody[dto.RegisterRequest](&w, r)
 		if err != nil {
 			return
 		}
@@ -53,7 +55,7 @@ func (handler *AuthHandler) Register() http.HandlerFunc {
 			return
 		}
 
-		data := RegisterResponse{
+		data := dto.RegisterResponse{
 			Token: token,
 		}
 		res.Json(w, data, http.StatusCreated)
@@ -65,7 +67,7 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Login")
 
-		body, err := req.HandleBody[LoginRequest](&w, r)
+		body, err := req.HandleBody[dto.LoginRequest](&w, r)
 		if err != nil {
 			return
 		}
@@ -84,7 +86,7 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 			return
 		}
 
-		data := LoginResponse{
+		data := dto.LoginResponse{
 			Token: token,
 		}
 		res.Json(w, data, http.StatusCreated)

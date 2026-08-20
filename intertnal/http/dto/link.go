@@ -1,4 +1,6 @@
-package link
+package dto
+
+import "github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 
 type LinkCreateRequest struct {
 	Url string `json:"url" validate:"required,url"`
@@ -10,6 +12,6 @@ type LinkUpdateRequest struct {
 }
 
 type LinksResponse struct {
-	Links []Link `json:"links"`
-	Count int64  `json:"count"`
+	Links []model.Link `json:"links"`
+	Count int64        `json:"count"`
 }

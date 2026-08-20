@@ -3,6 +3,7 @@ package stat
 import (
 	"time"
 
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/db"
 	"gorm.io/datatypes"
 )
@@ -18,14 +19,14 @@ func NewStatRepository(db *db.Db) *StatRepository {
 }
 
 func (repo *StatRepository) AddClick(linkID uint) {
-	var stat Stat
+	var stat model.Stat
 
 	currentDate := datatypes.Date(time.Now())
 
 	repo.Db.Find(&stat, "link_id = ? and date = ?", linkID, currentDate)
 
 	if stat.ID == 0 {
-		repo.DB.Create(&Stat{
+		repo.DB.Create(&model.Stat{
 			LinkID: linkID,
 			Clicks: 1,
 			Date:   currentDate,

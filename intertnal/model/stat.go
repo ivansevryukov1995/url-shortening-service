@@ -1,4 +1,4 @@
-package stat
+package model
 
 import (
 	"gorm.io/datatypes"

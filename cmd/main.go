@@ -27,14 +27,12 @@ func main() {
 	statRepo := stat.NewStatRepository(db)
 
 	// Services
-	authService := auth.AuthService{
-		UserRepository: userRepo,
-	}
+	authService := auth.NewAuthService(userRepo)
 
 	// Handlers
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
-		Config:      conf,
 		AuthService: authService,
+		Config:      conf,
 	})
 	link.NewLinkHandler(router, link.LinkHandlerDeps{
 		Config:         conf,
@@ -47,6 +45,7 @@ func main() {
 		middleware.CORS,
 		middleware.Logging,
 	)
+
 	server := http.Server{
 		Addr:    net.JoinHostPort(conf.Server.Host, conf.Server.Port),
 		Handler: stack(router),

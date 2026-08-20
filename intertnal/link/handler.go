@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
@@ -14,12 +16,12 @@ import (
 )
 
 type LinkHandler struct {
-	LinkRepository *LinkRepository
+	LinkRepository di.ILinkRepository
 	StatRepository di.IStatRepository
 }
 
 type LinkHandlerDeps struct {
-	LinkRepository *LinkRepository
+	LinkRepository di.ILinkRepository
 	StatRepository di.IStatRepository
 	Config         *configs.Config
 }
@@ -43,13 +45,13 @@ func (handler *LinkHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Create")
 
-		body, err := req.HandleBody[LinkCreateRequest](&w, r)
+		body, err := req.HandleBody[dto.LinkCreateRequest](&w, r)
 		if err != nil {
 			return
 		}
 
 		// service layer
-		link := NewLink(body.Url)
+		link := model.NewLink(body.Url)
 		for {
 			existedLink, _ := handler.LinkRepository.GetByHash(link.Hash)
 			if existedLink == nil {
@@ -96,7 +98,7 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			slog.Info(email)
 		}
 
-		body, err := req.HandleBody[LinkUpdateRequest](&w, r)
+		body, err := req.HandleBody[dto.LinkUpdateRequest](&w, r)
 		if err != nil {
 			return
 		}
@@ -108,7 +110,7 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			return
 		}
 
-		link, err := handler.LinkRepository.Update(&Link{
+		link, err := handler.LinkRepository.Update(&model.Link{
 			Model: gorm.Model{
 				ID: uint(id),
 			},
@@ -180,7 +182,7 @@ func (handler *LinkHandler) GetAll() http.HandlerFunc {
 			return
 		}
 
-		res.Json(w, LinksResponse{
+		res.Json(w, dto.LinksResponse{
 			Links: links,
 			Count: count,
 		}, http.StatusOK)
