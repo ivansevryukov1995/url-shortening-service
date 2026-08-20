@@ -9,6 +9,7 @@ import (
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
+	"github.com/ivansevryukov1995/url-shortening-service/pkg/event"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/req"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/res"
@@ -17,19 +18,19 @@ import (
 
 type LinkHandler struct {
 	LinkRepository di.ILinkRepository
-	StatRepository di.IStatRepository
+	EventBus       *event.EventBus
 }
 
 type LinkHandlerDeps struct {
 	LinkRepository di.ILinkRepository
-	StatRepository di.IStatRepository
+	EventBus       *event.EventBus
 	Config         *configs.Config
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
-		StatRepository: deps.StatRepository,
+		EventBus:       deps.EventBus,
 	}
 
 	router.Handle("POST /link", middleware.IsAuthed(handler.Create(), deps.Config))
@@ -83,7 +84,11 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			return
 		}
 
-		handler.StatRepository.AddClick(link.ID)
+		// handler.StatRepository.AddClick(link.ID)
+		go handler.EventBus.Publish(event.Event{
+			Type: event.EventLinkVisited,
+			Data: link.ID,
+		})
 
 		http.Redirect(w, r, link.URL, http.StatusTemporaryRedirect)
 	}
