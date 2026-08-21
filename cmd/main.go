@@ -62,7 +62,7 @@ func App(conf *configs.Config) http.Handler {
 }
 
 func main() {
-	conf := configs.LoadConfig()
+	conf := configs.LoadConfig(".env")
 	app := App(conf)
 
 	server := http.Server{

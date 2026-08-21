@@ -25,8 +25,8 @@ type AuthConfig struct {
 	Secret string
 }
 
-func LoadConfig() *Config {
-	err := godotenv.Load()
+func LoadConfig(filename string) *Config {
+	err := godotenv.Load(filename)
 	if err != nil {
 		slog.Info(".env not found, using environment variables: %v", err)
 	}

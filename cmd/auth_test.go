@@ -4,16 +4,50 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/http/dto"
+	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
+	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
+func initDb() *gorm.DB {
+	err := godotenv.Load(".env.test")
+	if err != nil {
+		slog.Info(".env not found, using environment variables:", "%v", err)
+	}
+
+	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	return db
+}
+
+func initData(db *gorm.DB) {
+	db.Create(&model.User{
+		Email:    "a2@a.ru",
+		Password: "$2a$10$ZuJsEigtOy1Kkjxaem2IYePNmTLhdyX74ZMp2WYsF6QQ5SPx4FrpK",
+		Name:     "Tom",
+	})
+}
+
 func TestLoginSuccess(t *testing.T) {
-	conf := configs.LoadConfig()
+	// Prepare
+	db := initDb()
+	initData(db)
+
+	// Test
+	conf := configs.LoadConfig(".env.test")
+	slog.Info("", "", conf)
 
 	ts := httptest.NewServer(App(conf))
 	defer ts.Close()
@@ -49,7 +83,7 @@ func TestLoginSuccess(t *testing.T) {
 	}
 }
 func TestLoginFail(t *testing.T) {
-	conf := configs.LoadConfig()
+	conf := configs.LoadConfig(".env.test")
 
 	ts := httptest.NewServer(App(conf))
 	defer ts.Close()
