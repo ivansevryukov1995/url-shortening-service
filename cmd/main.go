@@ -15,8 +15,7 @@ import (
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/middleware"
 )
 
-func main() {
-	conf := configs.LoadConfig()
+func App(conf *configs.Config) http.Handler {
 
 	db := db.NewDb(conf)
 
@@ -51,18 +50,25 @@ func main() {
 		StatRepository: statRepo,
 	})
 
+	go statService.AddClick()
+
 	// Middleware
 	stack := middleware.Chain(
 		middleware.CORS,
 		middleware.Logging,
 	)
 
+	return stack(router)
+}
+
+func main() {
+	conf := configs.LoadConfig()
+	app := App(conf)
+
 	server := http.Server{
 		Addr:    net.JoinHostPort(conf.Server.Host, conf.Server.Port),
-		Handler: stack(router),
+		Handler: app,
 	}
-
-	go statService.AddClick()
 
 	slog.Info("Sever is listening on", "host", conf.Server.Host, "port", conf.Server.Port)
 	server.ListenAndServe()
