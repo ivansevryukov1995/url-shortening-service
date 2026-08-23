@@ -89,7 +89,7 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 		data := dto.LoginResponse{
 			Token: token,
 		}
-		res.Json(w, data, http.StatusCreated)
+		res.Json(w, data, http.StatusOK)
 
 	}
 }
