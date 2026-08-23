@@ -22,7 +22,6 @@ services:
       retries: 60
       start_period: 10s
 
-  # --- Приложение (prod-образ) ---
   app:
     build:
       context: .

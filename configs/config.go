@@ -28,7 +28,7 @@ type AuthConfig struct {
 func LoadConfig(filename string) *Config {
 	err := godotenv.Load(filename)
 	if err != nil {
-		slog.Error("config", ".env not found, using environment variables: %v", err)
+		slog.Debug("config", ".env not found, using environment variables: %v", err)
 	}
 	return &Config{
 		Db: DbConfig{

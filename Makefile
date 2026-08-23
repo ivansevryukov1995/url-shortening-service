@@ -19,24 +19,25 @@ up-dev:
 	docker compose --profile dev up -d --build
 	@echo "Dev stack started. Run 'make migrate' to apply migrations."
 
-# --- Быстрый рестарт dev-стека (без пересборки образов, если не менялись Dockerfile) ---
 restart-dev:
 	@echo "Restarting dev stack..."
 	docker compose --profile dev restart
 
 build-migrate:
-	@echo "Building Migrate binary for Linux..."
-	mkdir -p bin
-	GOOS=linux CGO_ENABLED=0 go build -o bin/ussMigrate ./migrations
-	@echo "Migrate binary built: bin/ussMigrate"
+	@echo "Building migrate binary..."
+	CGO_ENABLED=0 GOOS=linux go build -o ./bin/ussMigrate ./migrations/auto.go
 
-# Запуск миграций (локально, через хост)
 migrate: build-migrate
 	@echo "Waiting for database to be ready..."
 	sleep 10
 	@echo "Running migrations..."
-	DATABASE_URL="postgresql://user:pass@localhost:5432/link_db?sslmode=disable" \
-		./bin/ussMigrate
+	./bin/ussMigrate
+
+migrate-docker: build-migrate
+	@echo "Running migrations in Docker..."
+	docker compose --profile dev run --rm \
+		--entrypoint="/app/bin/ussMigrate" \
+		app
 
 test-integration:
 	@echo "=== Cleaning up previous run ==="
