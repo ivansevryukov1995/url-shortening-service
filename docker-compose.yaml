@@ -1,42 +1,86 @@
 services:
-  postgres:
-    container_name: postgres_go
+  db-dev:
+    container_name: postgres_go_dev
     image: postgres:16.4
-    restart: no
     environment:
-      POSTGRES_USER: ${PGSQL_USER}
-      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
-      POSTGRES_DB: ${PGSQL_DBNAME}
-      PGDATA: /data/postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: link_db         
+      PGDATA: /var/lib/postgresql/data
     volumes:
-      - pg-data:/data/postgres
+      - pgdata_dev:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT}:${PGSQL_PORT}"
+      - "5433:5432"                  
+    networks:
+      - app-network
+    profiles:
+      - dev
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PGSQL_USER} -d ${PGSQL_DBNAME}"]
-      interval: 10s      
-      timeout: 10s       
-      retries: 20        
-      start_period: 120s 
+      test: ["CMD-SHELL", "pg_isready -U user -d link_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 10s
 
-  uss-service:
-    container_name: uss-service
+  app:
     build:
-      context: ./
-      dockerfile: ./uss-service.dockerfile
-    restart: always
-    environment:
-      APP_HOST: "${APP_HOST}"
-      APP_PORT: "${APP_PORT}"
-      DATABASE_URL: "postgresql://${PGSQL_USER}:${PGSQL_PASSWORD}@${PGSQL_HOST}:${PGSQL_PORT}/${PGSQL_DBNAME}?sslmode=${DB_SSLMODE}"
-      # SECRET: "${SECRET}"
-    env_file:
-      - .secrets
+      context: .
+      dockerfile: Dockerfile        
+      target: prod                  
     ports:
-      - "${APP_PORT}:8081"
+      - "8081:8081"
     depends_on:
-      postgres:
+      db-dev:
         condition: service_healthy
-  
+    environment:
+      DATABASE_URL: "postgresql://user:pass@db-dev:5432/link_db?sslmode=disable"
+      APP_PORT: "8081"
+    networks:
+      - app-network
+    profiles:
+      - dev
+      - prod
+
+  db-test:
+    container_name: postgres_go_test
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: link_test        
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    networks:
+      - app-network
+    profiles:
+      - test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d link_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 10s
+
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test                  
+    depends_on:
+      db-test:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://user:pass@db-test:5432/link_test?sslmode=disable"
+    networks:
+      - app-network
+    profiles:
+      - test
+
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
-  pg-data:
+  pgdata_dev:   
+  pgdata_test:  

@@ -1,7 +1,10 @@
 package configs
 
 import (
+	"log/slog"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -22,11 +25,11 @@ type AuthConfig struct {
 	Secret string
 }
 
-func LoadConfig() *Config {
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	slog.Info(".env not found, using environment variables: %v", err)
-	// }
+func LoadConfig(filename string) *Config {
+	err := godotenv.Load(filename)
+	if err != nil {
+		slog.Debug("config", ".env not found, using environment variables: %v", err)
+	}
 	return &Config{
 		Db: DbConfig{
 			Dsn: os.Getenv("DATABASE_URL"),

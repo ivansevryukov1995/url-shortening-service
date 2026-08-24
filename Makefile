@@ -1,7 +1,7 @@
 USS_BINARY := bin/ussApp
 USS_MIGRATE := bin/ussMigrate
 
-.PHONY: up up-build down clean migrate up-db wait-db build_uss build_migrate gen-secret
+.PHONY: up up-build down clean migrate up-db wait-db build_uss build_migrate gen-secret test-integration
 
 gen-secret:
 	echo "SECRET=$(openssl rand -base64 32)" > .secrets
@@ -12,36 +12,49 @@ build_uss:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $(USS_BINARY) ./cmd
 	@echo "USS binary built: $(USS_BINARY)"
 
-build_migrate:
-	@echo "Building Migrate binary for Linux..."
-	mkdir -p bin
-	GOOS=linux CGO_ENABLED=0 go build -o $(USS_MIGRATE) ./migrations
-	@echo "Migrate binary built: $(USS_MIGRATE)"
+up-dev:
+	@echo "Stopping existing stack..."
+	make down
+	@echo "Starting dev stack (app + db-dev)..."
+	docker compose --profile dev up -d --build
+	@echo "Dev stack started. Run 'make migrate' to apply migrations."
 
-up: build_uss
-	@echo "Starting full stack (data preserved)..."
-	docker compose up -d
-	@echo "Stack started. Check logs with: docker compose logs -f"
+restart-dev:
+	@echo "Restarting dev stack..."
+	docker compose --profile dev restart
 
-up-build: build_uss
-	@echo "Rebuilding and starting full stack (data preserved)..."
-	docker compose up -d --build
-	@echo "Stack rebuilt and started."
+build-migrate:
+	@echo "Building migrate binary..."
+	CGO_ENABLED=0 GOOS=linux go build -o ./bin/ussMigrate ./migrations/auto.go
+
+migrate: build-migrate
+	@echo "Waiting for database to be ready..."
+	sleep 10
+	@echo "Running migrations..."
+	./bin/ussMigrate
+
+migrate-docker: build-migrate
+	@echo "Running migrations in Docker..."
+	docker compose --profile dev run --rm \
+		--entrypoint="/app/bin/ussMigrate" \
+		app
+
+test-integration:
+	@echo "=== Cleaning up previous run ==="
+	docker compose --profile test down
+	docker compose --profile test up --build --abort-on-container-exit
+	@echo "=== Tests finished ==="
 
 down:
-	@echo "Stopping containers (data preserved in volumes)..."
-	docker compose down
-	@echo "Containers stopped."
-
-migrate: build_migrate
-	docker compose run --rm -v "$(PWD)/bin:/work" --entrypoint="/work/ussMigrate" uss-service
-
-up-db:
-	@echo "Starting Postgres only..."
-	docker compose up -d postgres
-	@echo "Postgres started. Wait for 'ready to accept connections' in logs."
+	docker compose --profile dev down
 
 clean: down
 	@echo "Removing data volumes (ALL DATA WILL BE LOST)..."
 	docker compose down -v
 	@echo "Cleaned. Data volumes removed."
+
+clean-test-db:
+	docker compose --profile test down -v
+
+test-integration-clean: clean-test-db
+	docker compose --profile test up --build --abort-on-container-exit
