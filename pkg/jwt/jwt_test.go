@@ -14,14 +14,17 @@ func TestJWTCreate(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+		return
 	}
 
 	isValid, data := jwtService.Parse(token)
 	if !isValid {
 		t.Fatal("Token is invalid")
+		return
 	}
 	if data.Email != email {
 		t.Fatalf("Email %s not equal %s", data.Email, email)
+		return
 	}
 
 }
