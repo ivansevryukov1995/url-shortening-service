@@ -5,7 +5,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-# Сборка основного приложения
+
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/ussApp ./cmd
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/ussMigrate ./migrations/auto.go
 
