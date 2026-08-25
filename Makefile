@@ -39,6 +39,10 @@ migrate-docker: build-migrate
 		--entrypoint="/app/bin/ussMigrate" \
 		app
 
+test-unit-cover:
+	go test -v --cover ./intertnal/auth/ --coverprofile=cover.out
+	go tool cover -html=cover.out 
+
 test-integration:
 	@echo "=== Cleaning up previous run ==="
 	docker compose --profile test down
