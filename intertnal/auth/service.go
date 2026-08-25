@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"errors"
-
 	"github.com/ivansevryukov1995/url-shortening-service/intertnal/model"
 	"github.com/ivansevryukov1995/url-shortening-service/pkg/di"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +17,7 @@ func NewAuthService(userRepository di.IUserRepository) *AuthService {
 func (service *AuthService) Register(email, password, name string) (string, error) {
 	existedUser, _ := service.UserRepository.FindByEmail(email)
 	if existedUser != nil {
-		return "", errors.New(ErrUserExists)
+		return "", ErrUserExists
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -44,12 +42,12 @@ func (service *AuthService) Register(email, password, name string) (string, erro
 func (service *AuthService) Login(email, password string) (string, error) {
 	existedUser, _ := service.UserRepository.FindByEmail(email)
 	if existedUser == nil {
-		return "", errors.New(ErrWrongCredetials)
+		return "", ErrWrongCredentials
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(existedUser.Password), []byte(password))
 	if err != nil {
-		return "", errors.New(ErrWrongCredetials)
+		return "", ErrWrongCredentials
 	}
 
 	return existedUser.Email, nil
