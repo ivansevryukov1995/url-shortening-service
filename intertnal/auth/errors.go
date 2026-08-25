@@ -1,6 +1,8 @@
 package auth
 
-const (
-	ErrUserExists      = "user exists"
-	ErrWrongCredetials = "wrong email or password"
+import "errors"
+
+var (
+	ErrUserExists       = errors.New("user exists")
+	ErrWrongCredentials = errors.New("wrong email or password")
 )
