@@ -5,14 +5,14 @@ A lightweight [RESTful API](https://roadmap.sh/projects/url-shortening-service) 
 
 ## Features
 
-- 🔐 **Authentication & Authorization**: User registration and login via JWT (or session-based) with protected endpoints.
-- 🔗 **URL Shortening**: Create short links from long URLs with automatic hash generation.
-- 📉 **Redirection**: Access a short link (`/{hash}`) to be redirected to the original URL.
-- 📊 **Statistics**: View access statistics for your links (requires auth).
-- 🗃️ **CRUD for Links**: Create, read, update, and delete your own links (protected by auth).
-- 🛠️ **Database Migrations**: Versioned migrations using the `ussMigrate` binary.
-- 🐳 **Dockerized**: Easy setup with Docker Compose for dev and test environments.
-- 🧪 **Integration Tests**: Dedicated test profile for end-to-end validation of the service.
+- **Authentication & Authorization**: User registration and login via JWT (or session-based) with protected endpoints.
+- **URL Shortening**: Create short links from long URLs with automatic hash generation.
+- **Redirection**: Access a short link (`/{hash}`) to be redirected to the original URL.
+- **Statistics**: View access statistics for your links (requires auth).
+- **CRUD for Links**: Create, read, update, and delete your own links (protected by auth).
+- **Database Migrations**: Versioned migrations using the `ussMigrate` binary.
+- **Dockerized**: Easy setup with Docker Compose for dev and test environments.
+-  **Integration Tests**: Dedicated test profile for end-to-end validation of the service.
 
 ## Tech Stack
 
