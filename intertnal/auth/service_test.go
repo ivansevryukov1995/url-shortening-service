@@ -29,30 +29,24 @@ func (repo *MockUserRepository) FindByEmail(email string) (*model.User, error) {
 	return user, auth.ErrUserExists
 }
 func TestRegisterService(t *testing.T) {
-	testCases := []struct {
-		tName string
-		email string
-		pass  string
-		name  string
-
+	testCases := map[string]struct {
+		email      string
+		pass       string
+		name       string
 		emailExpec string
 		err        error
 	}{
-		{
-			tName: "RegisterSuccess",
-			email: "a@a.ru",
-			pass:  "1",
-			name:  "John",
-
+		"RegisterSuccess": {
+			email:      "a@a.ru",
+			pass:       "1",
+			name:       "John",
 			emailExpec: "a@a.ru",
 			err:        nil,
 		},
-		{
-			tName: "UserExists",
-			email: "a@a.ru",
-			pass:  "1",
-			name:  "John",
-
+		"UserExists": {
+			email:      "a@a.ru",
+			pass:       "1",
+			name:       "John",
 			emailExpec: "",
 			err:        auth.ErrUserExists,
 		},
@@ -63,8 +57,8 @@ func TestRegisterService(t *testing.T) {
 
 	authService := auth.NewAuthService(userRepo)
 
-	for _, tC := range testCases {
-		t.Run(tC.tName, func(t *testing.T) {
+	for tName, tC := range testCases {
+		t.Run(tName, func(t *testing.T) {
 			emailGot, err := authService.Register(tC.email, tC.pass, tC.name)
 			if !errors.Is(err, tC.err) {
 				t.Fatalf("got %v, expected %v", err, tC.err)
@@ -79,27 +73,21 @@ func TestRegisterService(t *testing.T) {
 	}
 }
 func TestLoginService(t *testing.T) {
-	testCases := []struct {
-		tName string
-		email string
-		pass  string
-
+	testCases := map[string]struct {
+		email      string
+		pass       string
 		emailExpec string
 		err        error
 	}{
-		{
-			tName: "LoginSuccess",
-			email: "a@a.ru",
-			pass:  "1",
-
+		"LoginSuccess": {
+			email:      "a@a.ru",
+			pass:       "1",
 			emailExpec: "a@a.ru",
 			err:        nil,
 		},
-		{
-			tName: "WrongCredentials",
-			email: "a2@a.ru",
-			pass:  "1",
-
+		"WrongCredentials": {
+			email:      "a2@a.ru",
+			pass:       "1",
 			emailExpec: "",
 			err:        auth.ErrWrongCredentials,
 		},
@@ -112,8 +100,8 @@ func TestLoginService(t *testing.T) {
 
 	_, _ = authService.Register("a@a.ru", "1", "John")
 
-	for _, tC := range testCases {
-		t.Run(tC.tName, func(t *testing.T) {
+	for tName, tC := range testCases {
+		t.Run(tName, func(t *testing.T) {
 			emailGot, err := authService.Login(tC.email, tC.pass)
 			if !errors.Is(err, tC.err) {
 				t.Fatalf("got %v, expected %v", err, tC.err)
