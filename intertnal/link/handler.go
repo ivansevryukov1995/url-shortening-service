@@ -44,8 +44,6 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 
 func (handler *LinkHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Create")
-
 		body, err := req.HandleBody[dto.LinkCreateRequest](&w, r)
 		if err != nil {
 			return
@@ -74,8 +72,6 @@ func (handler *LinkHandler) Create() http.HandlerFunc {
 
 func (handler *LinkHandler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("GoTo")
-
 		hash := r.PathValue("hash")
 
 		link, err := handler.LinkRepository.GetByHash(hash)
@@ -95,8 +91,6 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 
 func (handler *LinkHandler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Update")
-
 		email, ok := r.Context().Value(middleware.ContextEmailKey).(string)
 		if ok {
 			slog.Info(email)
@@ -133,8 +127,6 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 
 func (handler *LinkHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Delete")
-
 		idString := r.PathValue("id")
 		id, err := strconv.ParseUint(idString, 10, 32)
 		if err != nil {
@@ -160,8 +152,6 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 
 func (handler *LinkHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("GetAll")
-
 		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 		if err != nil {
 			http.Error(w, "Invalid limit", http.StatusBadRequest)

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/ivansevryukov1995/url-shortening-service/configs"
@@ -34,8 +33,6 @@ func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 
 func (handler *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Register")
-
 		body, err := req.HandleBody[dto.RegisterRequest](&w, r)
 		if err != nil {
 			return
@@ -65,8 +62,6 @@ func (handler *AuthHandler) Register() http.HandlerFunc {
 
 func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Login")
-
 		body, err := req.HandleBody[dto.LoginRequest](&w, r)
 		if err != nil {
 			return

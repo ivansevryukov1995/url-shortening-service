@@ -1,7 +1,6 @@
 package stat
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -36,8 +35,6 @@ func NewStatHandler(router *http.ServeMux, deps StatHandlerDeps) {
 
 func (handler *StatHandler) GetStat() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("GetStat")
-
 		from, err := time.Parse("2006-01-02", r.URL.Query().Get("from"))
 		if err != nil {
 			http.Error(w, "Invalid from param", http.StatusBadRequest)
